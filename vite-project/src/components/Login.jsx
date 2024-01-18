@@ -21,10 +21,12 @@ function Login() {
     return true;
   };
 
+
+  //handle form submition
   const handleOnClick = async (e) => {
     e.preventDefault();
 
-    // Validate the form
+    
     if (!validateForm()) {
       return;
     }
@@ -49,7 +51,7 @@ function Login() {
       console.log('user logged in with token', token);
 
       // Redirect to the dashboard upon successful login
-      navigate('dashboard');
+      navigate('home');
     } catch (error) {
       console.log(error);
     }

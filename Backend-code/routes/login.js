@@ -2,13 +2,14 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const multer = require('multer');
  // Use the .default property
 
 const { User, Category, Product } = require('../modules/loginModules');
 
 const app = express();
 
-
+//middl
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(cors());
@@ -45,7 +46,7 @@ app.post("/login", async (req, res) => {
 });
 
 
-// Category routes
+//routes Category 
 app.get("/categories", async (req, res) => {
   try {
     const categories = await Category.find();
@@ -97,7 +98,7 @@ app.put("/categories/:categoryId", async (req, res) => {
     const updatedCategory = await Category.findByIdAndUpdate(
       categoryId,
       { name, description, status },
-      { new: true } // Return the modified document
+      { new: true } 
     );
 
     if (!updatedCategory) {
@@ -124,11 +125,41 @@ app.get("/products", async (req, res) => {
 });
 
 // Product routes
-app.post("/products", async (req, res) => {
-  const { name, category, packsize, mrp, image, status } = req.body;
+// Set up Multer storage
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/'); // The folder where uploaded files will be stored
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + '-' + file.originalname); // Unique file name
+  },
+});
+
+const upload = multer({ storage: storage });
+
+app.use('/uploads', express.static('uploads'));
+
+app.post("/products", upload.single('image'), async (req, res) => {
+  const { name, category, packsize, mrp, status } = req.body;
 
   try {
-    const newProduct = new Product({ name, category, packsize, mrp, image, status });
+    // Access the uploaded file information
+    const file = req.file;
+    let imagePath = null;
+    if (file) {
+      // If a file was uploaded, you can access its details like file.path
+      imagePath = req.protocol + '://' + req.get('host') + '/uploads/' + file.filename;
+    }
+
+    const newProduct = new Product({
+      name,
+      category,
+      packsize,
+      mrp,
+      image: imagePath,
+      status,
+    });
+
     await newProduct.save();
     console.log('Saved Product:', newProduct);
 
@@ -138,6 +169,20 @@ app.post("/products", async (req, res) => {
     res.status(500).json({ status: "error", message: "Internal Server Error for post" });
   }
 });
+// app.post("/products", async (req, res) => {
+//   const { name, category, packsize, mrp, image, status } = req.body;
+
+//   try {
+//     const newProduct = new Product({ name, category, packsize, mrp, image, status });
+//     await newProduct.save();
+//     console.log('Saved Product:', newProduct);
+
+//     res.json({ status: "success", data: newProduct, message: "Product created successfully" });
+//   } catch (error) {
+//     console.error("Error creating product:", error.message);
+//     res.status(500).json({ status: "error", message: "Internal Server Error for post" });
+//   }
+// });
 
 
 app.delete("/products/:productId", async (req, res) => {

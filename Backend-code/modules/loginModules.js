@@ -25,7 +25,7 @@ const productSchema = new mongoose.Schema({
   category: { type: String, required: true },
   packsize: { type: Number, default: 0 },
   mrp: { type: String, required: true },
-  image: { type: String, required: true },
+  image: { type: String },
   status: { type: String, enum: ['active', 'inactive'], default: 'inactive' },
 });
 

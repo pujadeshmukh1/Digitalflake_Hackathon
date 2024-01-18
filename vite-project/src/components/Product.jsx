@@ -1,4 +1,3 @@
-// Product.jsx
 import { useState, useEffect } from "react";
 import SideBar from "./SideBar";
 import NavBar from "./Navbar";
@@ -14,13 +13,10 @@ const Product = () => {
     status: "Status",
   });
   const [searchQuery, setSearchQuery] = useState('');
-  
   const [products, setProducts] = useState([]);
 
-  // Product API routes
   const getProductApi = 'http://localhost:4000/products';
 
-  // Fetch products function
   const fetchProducts = async () => {
     try {
       const response = await fetch(getProductApi);
@@ -53,21 +49,27 @@ const Product = () => {
     }));
   };
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    setNewProduct((prevProduct) => ({
+      ...prevProduct,
+      image: file,
+    }));
+  };
+
   const handleSaveProduct = async () => {
     try {
+      const formData = new FormData();
+      formData.append('name', newProduct.name);
+      formData.append('category', newProduct.category);
+      formData.append('packsize', newProduct.packsize);
+      formData.append('mrp', newProduct.mrp);
+      formData.append('status', newProduct.status);
+      formData.append('image', newProduct.image);
+
       const response = await fetch(getProductApi, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: newProduct.name,
-          category: newProduct.category,
-          packsize: newProduct.packsize,
-          mrp: newProduct.mrp,
-          image: newProduct.image,
-          status: newProduct.status,
-        }),
+        body: formData,
       });
 
       const data = await response.json();
@@ -81,7 +83,6 @@ const Product = () => {
       console.error('Error saving product:', error.message);
     }
 
-    // Reset state after saving
     setIsAddingItem(false);
     setSearchQuery('');
     setNewProduct({
@@ -95,7 +96,6 @@ const Product = () => {
   };
 
   const handleCancelAddItem = () => {
-    // Reset state without saving
     setIsAddingItem(false);
     setSearchQuery('');
     setNewProduct({
@@ -122,7 +122,6 @@ const Product = () => {
       });
 
       if (response.ok) {
-        // Remove the product from the state
         setProducts((prevProducts) => prevProducts.filter(product => product._id !== productId));
       } else {
         console.error('Error deleting product:', response.statusText);
@@ -131,6 +130,7 @@ const Product = () => {
       console.error('Error deleting product:', error.message);
     }
   };
+
   return (
     <>
       <div>
@@ -227,12 +227,11 @@ const Product = () => {
                     <label htmlFor="" className="font-semibold text-[18px]">Product Image</label>
                      <br />
                     <input
-                      type="text"
+                      type="file"
                       name="image"
                       placeholder="Product Image URL"
                       className="p-2 border border-gray-300 w-full rounded mr-2"
-                      value={newProduct.image}
-                      onChange={handleInputChange}
+                      onChange={handleFileChange}
                     />
                     </div>
 
